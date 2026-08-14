@@ -473,6 +473,57 @@
 
 
   /* ==========================================================
+     GAME 1 — CATCH THE LOVE
+     ========================================================== */
+
+  initializers[1] = function initGame1() {
+
+    const area = document.getElementById("game1-area");
+    const counter = document.getElementById("game1-count");
+    if (!area || !counter) return;
+
+    const needed = 5;
+    const heartCount = 8;
+    let caught = 0;
+
+    area.innerHTML = "";
+    counter.textContent = "0";
+
+    for (let i = 0; i < heartCount; i++) {
+      const heart = document.createElement("button");
+      heart.type = "button";
+      heart.className = "float-heart-btn";
+      heart.textContent = "💗";
+      heart.setAttribute("aria-label", "Catch heart");
+      heart.style.left = `${6 + Math.random() * 82}%`;
+      heart.style.top = `${6 + Math.random() * 78}%`;
+      heart.style.animationDelay = `${(Math.random() * 2).toFixed(2)}s`;
+
+      heart.addEventListener("click", () => {
+        if (heart.classList.contains("popped")) return;
+
+        heart.classList.add("popped");
+        const rect = heart.getBoundingClientRect();
+        createHeartSparkles(
+          rect.left - area.getBoundingClientRect().left + rect.width / 2,
+          rect.top - area.getBoundingClientRect().top + rect.height / 2
+        );
+
+        caught++;
+        counter.textContent = String(Math.min(caught, needed));
+
+        if (caught >= needed) {
+          heartGameRunning = false;
+          goToStep(2);
+        }
+      });
+
+      area.appendChild(heart);
+    }
+  };
+
+
+  /* ==========================================================
      GAME 2 — CATCH THE HEARTS
      ========================================================== */
 
