@@ -2682,6 +2682,7 @@
 
     startBalloons();
 
+    // Always start a fresh adventure; progress is intentionally not persisted.
     showStep(0);
 
   }
