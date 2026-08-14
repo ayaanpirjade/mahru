@@ -466,147 +466,192 @@
   const initializers = {};
 
 
-  /* ==========================================================
-     GAME 1 — CATCH HEARTS
-     ========================================================== */
+  /* =========================================
+   GAME 2 — CATCH THE HEARTS
+========================================= */
 
-  initializers[1] =
-    function initGame1() {
+const heartGame = document.getElementById("heart-game");
+const startHeartGame = document.getElementById("start-heart-game");
+const heartsCaughtDisplay = document.getElementById("hearts-caught");
+const heartStartMessage = document.getElementById("heart-start-message");
+const heartGameComplete = document.getElementById("heart-game-complete");
+const heartNextBtn = document.getElementById("heart-next-btn");
 
-      const area =
-        document.getElementById(
-          "game1-area"
-        );
+let heartsCaught = 0;
+let heartGameRunning = false;
+let heartSpawner = null;
 
-      const counter =
-        document.getElementById(
-          "game1-count"
-        );
+const heartEmojis = [
+  "💗",
+  "💖",
+  "💕",
+  "💓",
+  "💞",
+  "💘",
+  "💝"
+];
 
-      if (!area || !counter)
-        return;
+function createCatchHeart() {
 
+  if (!heartGameRunning || heartsCaught >= 10) return;
 
-      area.innerHTML = "";
+  const heart = document.createElement("div");
 
-      let caught = 0;
+  heart.className = "catch-heart";
 
-      const NEEDED = 5;
+  heart.textContent =
+    heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
 
-      const HEART_COUNT = 8;
+  const gameWidth = heartGame.clientWidth;
+  const gameHeight = heartGame.clientHeight;
 
+  const randomX =
+    Math.random() * (gameWidth - 55) + 10;
 
-      counter.textContent =
-        "0";
+  const randomY =
+    Math.random() * (gameHeight - 75) + 15;
 
+  heart.style.left = `${randomX}px`;
+  heart.style.top = `${randomY}px`;
 
-      for (
-        let i = 0;
-        i < HEART_COUNT;
-        i++
-      ) {
+  heart.addEventListener("click", catchHeart);
 
-        const button =
-          document.createElement(
-            "button"
-          );
+  /* Mobile touch support */
+  heart.addEventListener("touchstart", function(e) {
+    e.preventDefault();
+    catchHeart();
+  }, { passive: false });
 
-        button.className =
-          "float-heart-btn";
+  heartGame.appendChild(heart);
 
-        button.textContent =
-          "💗";
+  /* Automatically disappear if ignored */
+  setTimeout(() => {
+    if (heart.parentElement) {
+      heart.remove();
+    }
+  }, 1800);
+}
 
-        button.setAttribute(
-          "aria-label",
-          "Catch heart"
-        );
+function catchHeart(e) {
 
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
 
-        button.style.left =
-          `${
-            6 +
-            Math.random() * 82
-          }%`;
+  const heart = e ? e.currentTarget : null;
 
-        button.style.top =
-          `${
-            6 +
-            Math.random() * 78
-          }%`;
+  if (heart && heart.classList.contains("caught")) return;
 
-        button.style.animationDelay =
-          `${
-            Math.random() * 2
-          }s`;
+  if (heart) {
 
+    heart.classList.add("caught");
 
-        button.addEventListener(
-          "click",
-          () => {
+    createSparkles(
+      heart.offsetLeft + 15,
+      heart.offsetTop + 15
+    );
 
-            if (
-              button.classList.contains(
-                "popped"
-              )
-            ) return;
+    setTimeout(() => {
+      heart.remove();
+    }, 350);
+  }
 
+  heartsCaught++;
 
-            button.classList.add(
-              "popped"
-            );
+  heartsCaughtDisplay.textContent = heartsCaught;
 
+  if (heartsCaught >= 10) {
+    finishHeartGame();
+  }
+}
 
-            const rect =
-              button.getBoundingClientRect();
+function createSparkles(x, y) {
 
+  const sparkle = document.createElement("div");
 
-            spawnSparkBurst(
-              rect.left +
-              rect.width / 2,
+  sparkle.className = "heart-sparkle";
+  sparkle.textContent = "✨";
 
-              rect.top +
-              rect.height / 2,
+  sparkle.style.left = `${x}px`;
+  sparkle.style.top = `${y}px`;
 
-              6
-            );
+  heartGame.appendChild(sparkle);
 
+  setTimeout(() => {
+    sparkle.remove();
+  }, 600);
+}
 
-            caught++;
+function startHeartGameFunction() {
 
+  heartsCaught = 0;
+  heartGameRunning = true;
 
-            counter.textContent =
-              String(
-                Math.min(
-                  caught,
-                  NEEDED
-                )
-              );
+  heartsCaughtDisplay.textContent = "0";
 
+  heartStartMessage.style.display = "none";
+  heartGameComplete.classList.remove("show");
 
-            if (
-              caught >= NEEDED
-            ) {
+  /* Remove old hearts */
+  heartGame
+    .querySelectorAll(".catch-heart, .heart-sparkle")
+    .forEach(el => el.remove());
 
-              fireConfetti();
+  /* Spawn hearts */
+  createCatchHeart();
 
-              setTimeout(
-                () => goToStep(2),
-                700
-              );
-            }
+  heartSpawner = setInterval(() => {
 
-          }
-        );
+    if (heartsCaught < 10) {
+      createCatchHeart();
+    }
 
+  }, 650);
+}
 
-        area.appendChild(
-          button
-        );
-      }
+function finishHeartGame() {
 
-    };
+  heartGameRunning = false;
 
+  clearInterval(heartSpawner);
+
+  heartGame
+    .querySelectorAll(".catch-heart")
+    .forEach(el => el.remove());
+
+  setTimeout(() => {
+    heartGameComplete.classList.add("show");
+  }, 300);
+}
+
+startHeartGame.addEventListener(
+  "click",
+  startHeartGameFunction
+);
+
+/*
+   Change this to whatever function
+   your existing website uses to move
+   to the next page/step.
+*/
+heartNextBtn.addEventListener("click", () => {
+
+  /*
+    If your website already has a nextStep()
+    function, use this:
+  */
+
+  if (typeof nextStep === "function") {
+    nextStep();
+  }
+
+  /*
+    Otherwise, if your site uses data-step,
+    replace the code above with your existing
+    navigation function.
+  */
+});
 
   /* ==========================================================
      GAME 2 — HIDDEN FLOWER
