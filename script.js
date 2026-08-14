@@ -98,6 +98,8 @@
         ? 0
         : count;
 
+    if (n === 0) return;
+
     for (
       let i = 0;
       i < n;
@@ -371,14 +373,18 @@
             )
           ];
 
-        fxLayer.appendChild(
-          message
-        );
+        if (fxLayer) {
 
-        setTimeout(
-          () => message.remove(),
-          1300
-        );
+          fxLayer.appendChild(
+            message
+          );
+
+          setTimeout(
+            () => message.remove(),
+            1300
+          );
+
+        }
 
         setTimeout(
           remove,
@@ -466,192 +472,504 @@
   const initializers = {};
 
 
-  /* =========================================
-   GAME 2 — CATCH THE HEARTS
-========================================= */
+  /* ==========================================================
+     GAME 2 — CATCH THE HEARTS
+     ========================================================== */
 
-const heartGame = document.getElementById("heart-game");
-const startHeartGame = document.getElementById("start-heart-game");
-const heartsCaughtDisplay = document.getElementById("hearts-caught");
-const heartStartMessage = document.getElementById("heart-start-message");
-const heartGameComplete = document.getElementById("heart-game-complete");
-const heartNextBtn = document.getElementById("heart-next-btn");
+  const heartGame =
+    document.getElementById(
+      "heart-game"
+    );
 
-let heartsCaught = 0;
-let heartGameRunning = false;
-let heartSpawner = null;
+  const startHeartGame =
+    document.getElementById(
+      "start-heart-game"
+    );
 
-const heartEmojis = [
-  "💗",
-  "💖",
-  "💕",
-  "💓",
-  "💞",
-  "💘",
-  "💝"
-];
+  const heartsCaughtDisplay =
+    document.getElementById(
+      "hearts-caught"
+    );
 
-function createCatchHeart() {
+  const heartStartMessage =
+    document.getElementById(
+      "heart-start-message"
+    );
 
-  if (!heartGameRunning || heartsCaught >= 10) return;
+  const heartGameComplete =
+    document.getElementById(
+      "heart-game-complete"
+    );
 
-  const heart = document.createElement("div");
+  const heartNextBtn =
+    document.getElementById(
+      "heart-next-btn"
+    );
 
-  heart.className = "catch-heart";
 
-  heart.textContent =
-    heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+  let heartsCaught = 0;
 
-  const gameWidth = heartGame.clientWidth;
-  const gameHeight = heartGame.clientHeight;
+  let heartGameRunning =
+    false;
 
-  const randomX =
-    Math.random() * (gameWidth - 55) + 10;
+  let heartSpawner =
+    null;
 
-  const randomY =
-    Math.random() * (gameHeight - 75) + 15;
 
-  heart.style.left = `${randomX}px`;
-  heart.style.top = `${randomY}px`;
+  const heartEmojis = [
+    "💗",
+    "💖",
+    "💕",
+    "💓",
+    "💞",
+    "💘",
+    "💝"
+  ];
 
-  heart.addEventListener("click", catchHeart);
 
-  /* Mobile touch support */
-  heart.addEventListener("touchstart", function(e) {
-    e.preventDefault();
-    catchHeart();
-  }, { passive: false });
+  function createCatchHeart() {
 
-  heartGame.appendChild(heart);
+    if (
+      !heartGame ||
+      !heartGameRunning ||
+      heartsCaught >= 10
+    ) return;
 
-  /* Automatically disappear if ignored */
-  setTimeout(() => {
-    if (heart.parentElement) {
-      heart.remove();
-    }
-  }, 1800);
-}
 
-function catchHeart(e) {
+    const heart =
+      document.createElement(
+        "div"
+      );
 
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
+
+    heart.className =
+      "catch-heart";
+
+
+    heart.textContent =
+      heartEmojis[
+        Math.floor(
+          Math.random() *
+          heartEmojis.length
+        )
+      ];
+
+
+    const gameWidth =
+      heartGame.clientWidth;
+
+    const gameHeight =
+      heartGame.clientHeight;
+
+
+    const randomX =
+      Math.max(
+        5,
+        Math.random() *
+        Math.max(
+          10,
+          gameWidth - 60
+        )
+      );
+
+
+    const randomY =
+      Math.max(
+        5,
+        Math.random() *
+        Math.max(
+          10,
+          gameHeight - 70
+        )
+      );
+
+
+    heart.style.left =
+      `${randomX}px`;
+
+    heart.style.top =
+      `${randomY}px`;
+
+
+    /* Desktop click */
+
+    heart.addEventListener(
+      "click",
+      catchHeart
+    );
+
+
+    /* Mobile touch */
+
+    heart.addEventListener(
+      "touchstart",
+      function(e) {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        catchHeart(e);
+
+      },
+      {
+        passive: false
+      }
+    );
+
+
+    heartGame.appendChild(
+      heart
+    );
+
+
+    /*
+      Remove heart automatically
+      if Mahru doesn't catch it.
+    */
+
+    setTimeout(
+      () => {
+
+        if (
+          heart.parentElement &&
+          !heart.classList.contains(
+            "caught"
+          )
+        ) {
+
+          heart.remove();
+
+        }
+
+      },
+      1800
+    );
+
   }
 
-  const heart = e ? e.currentTarget : null;
 
-  if (heart && heart.classList.contains("caught")) return;
+  function catchHeart(e) {
 
-  if (heart) {
+    if (e) {
 
-    heart.classList.add("caught");
+      e.preventDefault();
+      e.stopPropagation();
 
-    createSparkles(
+    }
+
+
+    const heart =
+      e?.currentTarget;
+
+
+    if (
+      !heart ||
+      heart.classList.contains(
+        "caught"
+      )
+    ) return;
+
+
+    heart.classList.add(
+      "caught"
+    );
+
+
+    createHeartSparkles(
       heart.offsetLeft + 15,
       heart.offsetTop + 15
     );
 
-    setTimeout(() => {
-      heart.remove();
-    }, 350);
-  }
 
-  heartsCaught++;
+    heartsCaught++;
 
-  heartsCaughtDisplay.textContent = heartsCaught;
 
-  if (heartsCaught >= 10) {
-    finishHeartGame();
-  }
-}
+    if (
+      heartsCaughtDisplay
+    ) {
 
-function createSparkles(x, y) {
+      heartsCaughtDisplay.textContent =
+        heartsCaught;
 
-  const sparkle = document.createElement("div");
-
-  sparkle.className = "heart-sparkle";
-  sparkle.textContent = "✨";
-
-  sparkle.style.left = `${x}px`;
-  sparkle.style.top = `${y}px`;
-
-  heartGame.appendChild(sparkle);
-
-  setTimeout(() => {
-    sparkle.remove();
-  }, 600);
-}
-
-function startHeartGameFunction() {
-
-  heartsCaught = 0;
-  heartGameRunning = true;
-
-  heartsCaughtDisplay.textContent = "0";
-
-  heartStartMessage.style.display = "none";
-  heartGameComplete.classList.remove("show");
-
-  /* Remove old hearts */
-  heartGame
-    .querySelectorAll(".catch-heart, .heart-sparkle")
-    .forEach(el => el.remove());
-
-  /* Spawn hearts */
-  createCatchHeart();
-
-  heartSpawner = setInterval(() => {
-
-    if (heartsCaught < 10) {
-      createCatchHeart();
     }
 
-  }, 650);
-}
 
-function finishHeartGame() {
+    setTimeout(
+      () => {
 
-  heartGameRunning = false;
+        if (
+          heart.parentElement
+        ) {
 
-  clearInterval(heartSpawner);
+          heart.remove();
 
-  heartGame
-    .querySelectorAll(".catch-heart")
-    .forEach(el => el.remove());
+        }
 
-  setTimeout(() => {
-    heartGameComplete.classList.add("show");
-  }, 300);
-}
+      },
+      350
+    );
 
-startHeartGame.addEventListener(
-  "click",
-  startHeartGameFunction
-);
 
-/*
-   Change this to whatever function
-   your existing website uses to move
-   to the next page/step.
-*/
-heartNextBtn.addEventListener("click", () => {
+    if (
+      heartsCaught >= 10
+    ) {
 
-  /*
-    If your website already has a nextStep()
-    function, use this:
-  */
+      finishHeartGame();
 
-  if (typeof nextStep === "function") {
-    nextStep();
+    }
+
   }
 
+
+  function createHeartSparkles(
+    x,
+    y
+  ) {
+
+    if (!heartGame) return;
+
+
+    const sparkle =
+      document.createElement(
+        "div"
+      );
+
+
+    sparkle.className =
+      "heart-sparkle";
+
+
+    sparkle.textContent =
+      "✨";
+
+
+    sparkle.style.left =
+      `${x}px`;
+
+    sparkle.style.top =
+      `${y}px`;
+
+
+    heartGame.appendChild(
+      sparkle
+    );
+
+
+    setTimeout(
+      () => {
+
+        if (
+          sparkle.parentElement
+        ) {
+
+          sparkle.remove();
+
+        }
+
+      },
+      600
+    );
+
+  }
+
+
+  function startHeartGameFunction() {
+
+    if (
+      !heartGame
+    ) return;
+
+
+    heartsCaught =
+      0;
+
+
+    heartGameRunning =
+      true;
+
+
+    if (
+      heartSpawner
+    ) {
+
+      clearInterval(
+        heartSpawner
+      );
+
+      heartSpawner =
+        null;
+
+    }
+
+
+    if (
+      heartsCaughtDisplay
+    ) {
+
+      heartsCaughtDisplay.textContent =
+        "0";
+
+    }
+
+
+    if (
+      heartStartMessage
+    ) {
+
+      heartStartMessage.style.display =
+        "none";
+
+    }
+
+
+    if (
+      heartGameComplete
+    ) {
+
+      heartGameComplete.classList.remove(
+        "show"
+      );
+
+    }
+
+
+    heartGame
+      .querySelectorAll(
+        ".catch-heart, .heart-sparkle"
+      )
+      .forEach(
+        el => el.remove()
+      );
+
+
+    /*
+      First heart immediately.
+    */
+
+    createCatchHeart();
+
+
+    /*
+      Keep spawning hearts.
+    */
+
+    heartSpawner =
+      setInterval(
+        () => {
+
+          if (
+            heartsCaught < 10 &&
+            heartGameRunning
+          ) {
+
+            createCatchHeart();
+
+          }
+
+        },
+        650
+      );
+
+  }
+
+
+  function finishHeartGame() {
+
+    heartGameRunning =
+      false;
+
+
+    if (
+      heartSpawner
+    ) {
+
+      clearInterval(
+        heartSpawner
+      );
+
+      heartSpawner =
+        null;
+
+    }
+
+
+    if (
+      heartGame
+    ) {
+
+      heartGame
+        .querySelectorAll(
+          ".catch-heart"
+        )
+        .forEach(
+          el => el.remove()
+        );
+
+    }
+
+
+    fireConfetti({
+
+      particleCount: 100,
+
+      spread: 80
+
+    });
+
+
+    setTimeout(
+      () => {
+
+        if (
+          heartGameComplete
+        ) {
+
+          heartGameComplete.classList.add(
+            "show"
+          );
+
+        }
+
+      },
+      300
+    );
+
+  }
+
+
+  if (
+    startHeartGame
+  ) {
+
+    startHeartGame.addEventListener(
+      "click",
+      startHeartGameFunction
+    );
+
+  }
+
+
   /*
-    Otherwise, if your site uses data-step,
-    replace the code above with your existing
-    navigation function.
+    IMPORTANT:
+    Your website uses goToStep()
+    for navigation, not nextStep().
   */
-});
+
+  if (
+    heartNextBtn
+  ) {
+
+    heartNextBtn.addEventListener(
+      "click",
+      () => {
+
+        goToStep(3);
+
+      }
+    );
+
+  }
+
 
   /* ==========================================================
      GAME 2 — HIDDEN FLOWER
@@ -766,8 +1084,10 @@ heartNextBtn.addEventListener("click", () => {
 
               setTimeout(
                 () => {
+
                   button.style.transform =
                     "";
+
                 },
                 250
               );
@@ -805,12 +1125,19 @@ heartNextBtn.addEventListener("click", () => {
           "game3-feedback"
         );
 
-      if (!boxes.length)
-        return;
+      if (
+        !boxes.length
+      ) return;
 
 
-      feedback.textContent =
-        "\u00A0";
+      if (
+        feedback
+      ) {
+
+        feedback.textContent =
+          "\u00A0";
+
+      }
 
 
       boxes.forEach(
@@ -821,7 +1148,8 @@ heartNextBtn.addEventListener("click", () => {
             "shake"
           );
 
-          box.disabled = false;
+          box.disabled =
+            false;
 
           box.textContent =
             "🎁";
@@ -849,8 +1177,10 @@ heartNextBtn.addEventListener("click", () => {
 
                 boxes.forEach(
                   item => {
+
                     item.disabled =
                       true;
+
                   }
                 );
 
@@ -864,8 +1194,14 @@ heartNextBtn.addEventListener("click", () => {
                   "💌";
 
 
-                feedback.textContent =
-                  "You found it! 🎉";
+                if (
+                  feedback
+                ) {
+
+                  feedback.textContent =
+                    "You found it! 🎉";
+
+                }
 
 
                 const rect =
@@ -904,8 +1240,15 @@ heartNextBtn.addEventListener("click", () => {
                   "shake"
                 );
 
-                feedback.textContent =
-                  "Nopeee 😭 Try another one!";
+
+                if (
+                  feedback
+                ) {
+
+                  feedback.textContent =
+                    "Nopeee 😭 Try another one!";
+
+                }
 
               }
 
@@ -952,12 +1295,16 @@ heartNextBtn.addEventListener("click", () => {
       function moveButterfly() {
 
         const maxLeft =
-          area.clientWidth -
-          50;
+          Math.max(
+            0,
+            area.clientWidth - 50
+          );
 
         const maxTop =
-          area.clientHeight -
-          50;
+          Math.max(
+            0,
+            area.clientHeight - 50
+          );
 
 
         const left =
@@ -980,6 +1327,7 @@ heartNextBtn.addEventListener("click", () => {
 
         butterfly.style.top =
           `${top}px`;
+
       }
 
 
@@ -1225,6 +1573,7 @@ heartNextBtn.addEventListener("click", () => {
             },
             3300
           );
+
       }
 
 
@@ -1410,6 +1759,7 @@ heartNextBtn.addEventListener("click", () => {
 
       openButton.style.animation =
         "step-in .6s ease";
+
     }
 
 
@@ -1557,10 +1907,14 @@ heartNextBtn.addEventListener("click", () => {
     ) return;
 
 
-    audio.volume =
-      Number(
-        volume.value
-      );
+    if (volume) {
+
+      audio.volume =
+        Number(
+          volume.value
+        );
+
+    }
 
 
     toggle.onclick =
@@ -1573,52 +1927,68 @@ heartNextBtn.addEventListener("click", () => {
       };
 
 
-    playButton.onclick =
-      () => {
+    if (playButton) {
 
-        audio
-          .play()
-          .catch(
-            () => {}
-          );
+      playButton.onclick =
+        () => {
 
-      };
+          audio
+            .play()
+            .catch(
+              () => {}
+            );
 
+        };
 
-    pauseButton.onclick =
-      () => {
-
-        audio.pause();
-
-      };
+    }
 
 
-    muteButton.onclick =
-      () => {
+    if (pauseButton) {
 
-        audio.muted =
-          !audio.muted;
+      pauseButton.onclick =
+        () => {
 
+          audio.pause();
 
-        muteButton.textContent =
-          audio.muted
-            ? "🔈"
-            : "🔇";
+        };
 
-      };
+    }
 
 
-    volume.addEventListener(
-      "input",
-      () => {
+    if (muteButton) {
 
-        audio.volume =
-          Number(
-            volume.value
-          );
+      muteButton.onclick =
+        () => {
 
-      }
-    );
+          audio.muted =
+            !audio.muted;
+
+
+          muteButton.textContent =
+            audio.muted
+              ? "🔈"
+              : "🔇";
+
+        };
+
+    }
+
+
+    if (volume) {
+
+      volume.addEventListener(
+        "input",
+        () => {
+
+          audio.volume =
+            Number(
+              volume.value
+            );
+
+        }
+      );
+
+    }
 
   }
 
@@ -1707,6 +2077,7 @@ heartNextBtn.addEventListener("click", () => {
 
 
     if (
+      !canvas ||
       typeof THREE ===
       "undefined"
     ) {
@@ -1916,11 +2287,13 @@ heartNextBtn.addEventListener("click", () => {
         .9
       );
 
+
     light.position.set(
       2,
       4,
       6
     );
+
 
     scene.add(light);
 
