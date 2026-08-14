@@ -345,89 +345,713 @@
     };
   };
 
-  /* ---- Step 9: Heart Puzzle ---- */
-  initializers[9] = function initGame5() {
-    const board = document.getElementById("puzzle-board");
-    board.innerHTML = "";
-    const SIZE = 3;
-    const total = SIZE * SIZE;
-    const order = Array.from({ length: total }, (_, i) => i);
+ /* =========================================
+   STEP 9 — GAME 5
+   MAHRU 8-PIECE JIGSAW PUZZLE
+   ========================================= */
 
-    // shuffle via random swaps (any permutation is solvable since moves are free swaps)
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
+initializers[9] = function initGame5() {
+
+  const game = document.getElementById("jigsaw-game");
+  const progress = document.getElementById("jigsaw-progress");
+  const status = document.getElementById("jigsaw-status");
+
+  if (!game || !progress || !status) return;
+
+  game.innerHTML = "";
+
+  /*
+    8 PIECES
+    4 columns × 2 rows
+
+    0 1 2 3
+    4 5 6 7
+  */
+
+  const COLS = 4;
+  const ROWS = 2;
+  const TOTAL = COLS * ROWS;
+
+  const board = document.createElement("div");
+  board.className = "jigsaw-board";
+
+  game.appendChild(board);
+
+  /*
+    Create a jigsaw SVG path for every piece.
+
+    The paths are generated from the piece's
+    row/column position so neighboring pieces
+    have matching tabs/gaps.
+  */
+
+  function createPiecePath(col, row) {
+
+    const W = 100;
+    const H = 100;
+
+    let path = `M 0 0`;
+
+    /* TOP EDGE */
+
+    if (row === 0) {
+
+      path += ` L ${W} 0`;
+
+    } else {
+
+      const direction = ((col + row) % 2 === 0) ? 1 : -1;
+
+      path += `
+        L 25 0
+        C 35 0 35 ${direction * 18} 50 ${direction * 18}
+        C 65 ${direction * 18} 65 0 75 0
+        L ${W} 0
+      `;
     }
-    // guarantee it's not already solved
-    if (order.every((v, i) => v === i)) {
-      [order[0], order[1]] = [order[1], order[0]];
+
+    /* RIGHT EDGE */
+
+    if (col === COLS - 1) {
+
+      path += ` L ${W} ${H}`;
+
+    } else {
+
+      const direction = ((col + row) % 2 === 0) ? 1 : -1;
+
+      path += `
+        L ${W} 25
+        C ${W} 35 ${W + direction * 18} 35 ${W + direction * 18} 50
+        C ${W + direction * 18} 65 ${W} 65 ${W} 75
+        L ${W} ${H}
+      `;
     }
 
-    let selected = null;
-    let solved = false;
-    const imageUrl = "assets/photos/mahru6.jpg";
-    const pieces = [];
+    /* BOTTOM EDGE */
 
-    order.forEach((correctIdx, pos) => {
-      const btn = document.createElement("button");
-      btn.className = "puzzle-piece";
-      btn.dataset.correct = correctIdx;
-      const col = correctIdx % SIZE;
-      const row = Math.floor(correctIdx / SIZE);
-      btn.style.backgroundImage = `url(${imageUrl})`;
-      btn.style.backgroundPosition = `${(col * 100) / (SIZE - 1)}% ${(row * 100) / (SIZE - 1)}%`;
-      btn.setAttribute("aria-label", "Puzzle piece");
-      btn.addEventListener("error", () => {}, true);
-      btn.addEventListener("click", () => onPieceClick(btn));
-      board.appendChild(btn);
-      pieces.push(btn);
-    });
+    if (row === ROWS - 1) {
 
-    // graceful fallback label if the image is missing (can't detect onerror for background-image directly)
-    const testImg = new Image();
-    testImg.onerror = () => pieces.forEach((p) => p.classList.add("empty-placeholder"));
-    testImg.src = imageUrl;
+      path += ` L 0 ${H}`;
 
-    function onPieceClick(btn) {
-      if (solved) return;
-      if (!selected) {
-        selected = btn;
-        btn.classList.add("selected");
-        return;
+    } else {
+
+      const direction = ((col + row) % 2 === 0) ? -1 : 1;
+
+      path += `
+        L 75 ${H}
+        C 65 ${H} 65 ${H + direction * 18} 50 ${H + direction * 18}
+        C 35 ${H + direction * 18} 35 ${H} 25 ${H}
+        L 0 ${H}
+      `;
+    }
+
+    /* LEFT EDGE */
+
+    if (col === 0) {
+
+      path += ` L 0 0`;
+
+    } else {
+
+      const direction = ((col + row) % 2 === 0) ? -1 : 1;
+
+      path += `
+        L 0 75
+        C ${direction * 18} 65 ${direction * 18} 65 ${direction * 18} 50
+        C ${direction * 18} 35 0 35 0 25
+        L 0 0
+      `;
+    }
+
+    return path + " Z";
+  }
+
+
+  /*
+    Create SVG piece
+  */
+
+  function createPiece(index) {
+
+    const col = index % COLS;
+    const row = Math.floor(index / COLS);
+
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    const svg = document.createElementNS(svgNS, "svg");
+
+    svg.setAttribute("viewBox", "-20 -20 140 140");
+
+    svg.classList.add("jigsaw-piece");
+
+    svg.dataset.correct = index;
+
+    /*
+      Position of the correct location
+    */
+
+    const boardRect = board.getBoundingClientRect();
+
+    const pieceWidth = boardRect.width / COLS;
+    const pieceHeight = boardRect.height / ROWS;
+
+    const correctX = col * pieceWidth;
+    const correctY = row * pieceHeight;
+
+    svg.dataset.correctX = correctX;
+    svg.dataset.correctY = correctY;
+
+    /*
+      Create clipping path
+    */
+
+    const defs = document.createElementNS(svgNS, "defs");
+
+    const clip = document.createElementNS(svgNS, "clipPath");
+
+    const clipId =
+      `jigsaw-clip-${Date.now()}-${index}`;
+
+    clip.setAttribute("id", clipId);
+
+    const path = document.createElementNS(svgNS, "path");
+
+    path.setAttribute(
+      "d",
+      createPiecePath(col, row)
+    );
+
+    clip.appendChild(path);
+
+    defs.appendChild(clip);
+
+    svg.appendChild(defs);
+
+    /*
+      Image
+    */
+
+    const image =
+      document.createElementNS(svgNS, "image");
+
+    image.setAttribute(
+      "href",
+      "assets/photos/mahru6.jpg"
+    );
+
+    image.setAttribute(
+      "x",
+      -(col * 100)
+    );
+
+    image.setAttribute(
+      "y",
+      -(row * 100)
+    );
+
+    image.setAttribute(
+      "width",
+      COLS * 100
+    );
+
+    image.setAttribute(
+      "height",
+      ROWS * 100
+    );
+
+    image.setAttribute(
+      "preserveAspectRatio",
+      "xMidYMid slice"
+    );
+
+    image.setAttribute(
+      "clip-path",
+      `url(#${clipId})`
+    );
+
+    svg.appendChild(image);
+
+    /*
+      Add white outline
+    */
+
+    const outline =
+      document.createElementNS(svgNS, "path");
+
+    outline.setAttribute(
+      "d",
+      createPiecePath(col, row)
+    );
+
+    outline.setAttribute(
+      "fill",
+      "none"
+    );
+
+    outline.setAttribute(
+      "stroke",
+      "rgba(255,255,255,.8)"
+    );
+
+    outline.setAttribute(
+      "stroke-width",
+      "2"
+    );
+
+    svg.appendChild(outline);
+
+    return svg;
+  }
+
+
+  /*
+    Shuffle array
+  */
+
+  function shuffle(array) {
+
+    const copy = [...array];
+
+    for (
+      let i = copy.length - 1;
+      i > 0;
+      i--
+    ) {
+
+      const j =
+        Math.floor(Math.random() * (i + 1));
+
+      [copy[i], copy[j]] =
+        [copy[j], copy[i]];
+    }
+
+    return copy;
+  }
+
+
+  /*
+    Create pieces
+  */
+
+  const pieces = [];
+
+  for (let i = 0; i < TOTAL; i++) {
+
+    const piece = createPiece(i);
+
+    pieces.push(piece);
+
+    game.appendChild(piece);
+  }
+
+
+  /*
+    Position pieces randomly around board
+  */
+
+  const gameRect = game.getBoundingClientRect();
+
+  const boardRect = board.getBoundingClientRect();
+
+  const pieceWidth =
+    boardRect.width / COLS;
+
+  const pieceHeight =
+    boardRect.height / ROWS;
+
+  const positions = shuffle(
+    Array.from(
+      { length: TOTAL },
+      (_, i) => i
+    )
+  );
+
+
+  pieces.forEach((piece, i) => {
+
+    const randomIndex = positions[i];
+
+    const randomCol =
+      randomIndex % COLS;
+
+    const randomRow =
+      Math.floor(randomIndex / COLS);
+
+    /*
+      Put pieces around the board.
+    */
+
+    const x =
+      board.offsetLeft +
+      randomCol * pieceWidth;
+
+    const y =
+      board.offsetTop +
+      randomRow * pieceHeight;
+
+    /*
+      Slight random offset.
+    */
+
+    const offsetX =
+      (Math.random() - .5) *
+      Math.min(80, pieceWidth * .35);
+
+    const offsetY =
+      (Math.random() - .5) *
+      Math.min(80, pieceHeight * .35);
+
+    piece.style.width =
+      `${pieceWidth}px`;
+
+    piece.style.height =
+      `${pieceHeight}px`;
+
+    piece.style.left =
+      `${x + offsetX}px`;
+
+    piece.style.top =
+      `${y + offsetY}px`;
+
+    piece.style.transform =
+      `rotate(${(Math.random() - .5) * 12}deg)`;
+
+  });
+
+
+  /*
+    DRAG SYSTEM
+  */
+
+  let activePiece = null;
+
+  let pointerOffsetX = 0;
+  let pointerOffsetY = 0;
+
+  let solvedCount = 0;
+
+
+  pieces.forEach(piece => {
+
+    piece.addEventListener(
+      "pointerdown",
+      startDrag
+    );
+
+  });
+
+
+  function startDrag(event) {
+
+    if (
+      this.classList.contains("locked")
+    ) return;
+
+    activePiece = this;
+
+    activePiece.classList.add("dragging");
+
+    activePiece.setPointerCapture(
+      event.pointerId
+    );
+
+    const rect =
+      activePiece.getBoundingClientRect();
+
+    pointerOffsetX =
+      event.clientX - rect.left;
+
+    pointerOffsetY =
+      event.clientY - rect.top;
+
+    activePiece.addEventListener(
+      "pointermove",
+      dragPiece
+    );
+
+    activePiece.addEventListener(
+      "pointerup",
+      stopDrag
+    );
+
+    activePiece.addEventListener(
+      "pointercancel",
+      stopDrag
+    );
+
+  }
+
+
+  function dragPiece(event) {
+
+    if (!activePiece) return;
+
+    const gameRect =
+      game.getBoundingClientRect();
+
+    const newX =
+      event.clientX -
+      gameRect.left -
+      pointerOffsetX;
+
+    const newY =
+      event.clientY -
+      gameRect.top -
+      pointerOffsetY;
+
+    activePiece.style.left =
+      `${newX}px`;
+
+    activePiece.style.top =
+      `${newY}px`;
+
+    activePiece.style.transform =
+      "rotate(0deg) scale(1.04)";
+  }
+
+
+  function stopDrag(event) {
+
+    if (!activePiece) return;
+
+    const piece =
+      activePiece;
+
+    piece.classList.remove("dragging");
+
+    piece.removeEventListener(
+      "pointermove",
+      dragPiece
+    );
+
+    piece.removeEventListener(
+      "pointerup",
+      stopDrag
+    );
+
+    piece.removeEventListener(
+      "pointercancel",
+      stopDrag
+    );
+
+    /*
+      Calculate correct position
+    */
+
+    const correctIndex =
+      Number(piece.dataset.correct);
+
+    const correctCol =
+      correctIndex % COLS;
+
+    const correctRow =
+      Math.floor(correctIndex / COLS);
+
+    const targetX =
+      board.offsetLeft +
+      correctCol * pieceWidth;
+
+    const targetY =
+      board.offsetTop +
+      correctRow * pieceHeight;
+
+    const currentX =
+      parseFloat(piece.style.left);
+
+    const currentY =
+      parseFloat(piece.style.top);
+
+    const distance =
+      Math.hypot(
+        currentX - targetX,
+        currentY - targetY
+      );
+
+    /*
+      Snap if close enough
+    */
+
+    const snapDistance =
+      Math.min(
+        70,
+        pieceWidth * .45
+      );
+
+    if (
+      distance <= snapDistance
+    ) {
+
+      piece.style.left =
+        `${targetX}px`;
+
+      piece.style.top =
+        `${targetY}px`;
+
+      piece.style.transform =
+        "rotate(0deg) scale(1)";
+
+      piece.classList.add("locked");
+      piece.classList.add("correct");
+
+      solvedCount++;
+
+      updateProgress();
+
+      /*
+        Tiny sparkle effect
+      */
+
+      const rect =
+        piece.getBoundingClientRect();
+
+      if (
+        typeof spawnSparkBurst ===
+        "function"
+      ) {
+
+        spawnSparkBurst(
+          rect.left + rect.width / 2,
+          rect.top + rect.height / 2,
+          8
+        );
+
       }
-      if (selected === btn) {
-        btn.classList.remove("selected");
-        selected = null;
-        return;
+
+      /*
+        Check completion
+      */
+
+      if (
+        solvedCount === TOTAL
+      ) {
+
+        finishPuzzle();
+
       }
-      // swap correct-index (and visuals) between selected and btn
-      const a = selected.dataset.correct;
-      const b = btn.dataset.correct;
-      selected.dataset.correct = b;
-      btn.dataset.correct = a;
-      [selected, btn].forEach((el) => {
-        const ci = Number(el.dataset.correct);
-        const col = ci % SIZE;
-        const row = Math.floor(ci / SIZE);
-        el.style.backgroundPosition = `${(col * 100) / (SIZE - 1)}% ${(row * 100) / (SIZE - 1)}%`;
+
+    }
+
+    activePiece = null;
+
+  }
+
+
+  /*
+    Progress
+  */
+
+  function updateProgress() {
+
+    progress.textContent =
+      `${solvedCount} / ${TOTAL} pieces 💗`;
+
+    if (solvedCount < TOTAL) {
+
+      status.textContent =
+        solvedCount === 0
+          ? "Drag the pieces into their matching spots 🥹"
+          : `So cute! ${TOTAL - solvedCount} pieces left 💗`;
+
+    }
+
+  }
+
+
+  /*
+    FINISH
+  */
+
+  function finishPuzzle() {
+
+    status.classList.add("success");
+
+    status.innerHTML =
+      "YOU DID IT! 🥹💗 You found my beautiful Mahru! 🎀✨";
+
+    progress.textContent =
+      "8 / 8 pieces — COMPLETE! 🎉";
+
+    /*
+      Complete existing adventure system
+    */
+
+    if (
+      typeof completeGame ===
+      "function"
+    ) {
+
+      completeGame(9);
+
+    }
+
+    /*
+      Confetti
+    */
+
+    if (
+      typeof fireConfetti ===
+      "function"
+    ) {
+
+      fireConfetti({
+        particleCount: 160,
+        spread: 100
       });
-      selected.classList.remove("selected");
-      selected = null;
 
-      checkSolved();
     }
 
-    function checkSolved() {
-      const isSolved = pieces.every((p, i) => Number(p.dataset.correct) === i);
-      if (isSolved) {
-        solved = true;
-        pieces.forEach((p) => p.classList.add("solved-glow"));
-        completeGame(9);
-        fireConfetti({});
-        setTimeout(() => goToStep(10), 1000);
+    /*
+      Extra sparkle
+    */
+
+    const boardRect =
+      board.getBoundingClientRect();
+
+    if (
+      typeof spawnSparkBurst ===
+      "function"
+    ) {
+
+      spawnSparkBurst(
+        boardRect.left +
+        boardRect.width / 2,
+
+        boardRect.top +
+        boardRect.height / 2,
+
+        25
+      );
+
+    }
+
+    /*
+      Move to existing Step 10
+    */
+
+    setTimeout(() => {
+
+      if (
+        typeof goToStep ===
+        "function"
+      ) {
+
+        goToStep(10);
+
       }
-    }
-  };
+
+    }, 1300);
+
+  }
+
+
+  /*
+    Initial progress
+  */
+
+  updateProgress();
+
+};
 
   /* ---- Step 10: Letter (envelope) ---- */
   initializers[10] = function initReveal5() {
