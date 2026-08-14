@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover" />
+<title>Happy Birthday, Mahru 💗</title>
+<meta name="description" content="A little magical universe made just for Mahru" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Quicksand:wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ AMBIENT 3D BACKGROUND ============ -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<!-- ============ AMBIENT PARTICLE / TAP-HEART LAYER ============ -->
+<div id="fx-layer" aria-hidden="true"></div>
+
+<!-- ============ FLOATING MUSIC WIDGET ============ -->
+<div id="music-widget" class="glass" aria-label="Music player">
+  <button id="music-toggle" class="music-btn" aria-label="Play our birthday song">
+    <span id="music-icon">🎵</span>
+  </button>
+  <div id="music-panel" class="music-panel hidden">
+    <p class="music-label">Our Birthday Song</p>
+    <div class="music-controls">
+      <button id="music-play" aria-label="Play">▶️</button>
+      <button id="music-pause" aria-label="Pause">⏸️</button>
+      <button id="music-mute" aria-label="Mute">🔇</button>
+    </div>
+    <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.6" aria-label="Volume" />
+  </div>
+</div>
+<audio id="bg-audio" loop preload="none" src="assets/music/birthday.mp3"></audio>
+
+<!-- ============ ADVENTURE PROGRESS WIDGET ============ -->
+<div id="progress-widget" class="glass hidden" role="status" aria-live="polite">
+  <p class="progress-title">💗 Mahru's Birthday Adventure</p>
+  <p class="progress-count"><span id="progress-count-num">0</span>/6 Surprises Unlocked</p>
+  <ul id="progress-list" class="progress-list">
+    <li data-step="1"><span class="lock-icon">🔒</span> Catch My Hearts</li>
+    <li data-step="3"><span class="lock-icon">🔒</span> Find The Hidden Flower</li>
+    <li data-step="5"><span class="lock-icon">🔒</span> Choose Your Gift</li>
+    <li data-step="7"><span class="lock-icon">🔒</span> Butterfly Surprise</li>
+    <li data-step="9"><span class="lock-icon">🔒</span> Heart Puzzle</li>
+    <li data-step="12"><span class="lock-icon">🔒</span> Make A Wish</li>
+  </ul>
+</div>
+
+<!-- ============ MAIN STAGE (single-step wizard) ============ -->
+<main id="stage">
+
+  <!-- STEP 0 — HERO -->
+  <section class="step active" data-step="0" id="step-hero">
+    <div class="hero-inner">
+      <p class="eyebrow">a tiny universe, just for</p>
+      <h1 class="hero-title">Happy Birthday,<br><span class="script">Mahru</span> 🎂💗</h1>
+      <p class="hero-subtitle">To my sweetheart, my baby girl, my sweety… this little world was made just for you.</p>
+
+      <div class="cake-wrap" id="hero-cake">
+        <div class="cake-3d">
+          <div class="candle" data-candle="1"><span class="flame"></span></div>
+          <div class="candle" data-candle="2"><span class="flame"></span></div>
+          <div class="candle" data-candle="3"><span class="flame"></span></div>
+          <div class="cake-top"></div>
+          <div class="cake-drip"></div>
+          <div class="cake-tier cake-tier--mid"></div>
+          <div class="cake-tier cake-tier--base"></div>
+          <div class="cake-plate"></div>
+        </div>
+        <p class="cake-hint" id="cake-hint">Tap each candle to make a wish 🕯️</p>
+      </div>
+
+      <button class="btn btn-primary hidden" id="open-surprise-btn">Open Your Surprise 🎁</button>
+    </div>
+  </section>
+
+  <!-- STEP 1 — GAME 1: Catch The Hearts -->
+  <section class="step" data-step="1" id="step-game1">
+    <div class="panel glass">
+      <h2 class="panel-title">Catch The Love 💗</h2>
+      <p class="panel-text">Catch 5 hearts to unlock your first surprise, sweetheart!</p>
+      <p class="game-status">Caught: <span id="game1-count">0</span> / 5</p>
+      <div class="game-area" id="game1-area" aria-label="Tap the floating hearts"></div>
+    </div>
+  </section>
+
+  <!-- STEP 2 — REVEAL 1 -->
+  <section class="step" data-step="2" id="step-reveal1">
+    <div class="panel glass reveal-panel">
+      <div class="reveal-badge">🎁 Surprise #1</div>
+      <p class="reveal-emoji">🥹💗</p>
+      <p class="reveal-message">You caught all my hearts, Mahru!</p>
+      <p class="reveal-sub">You're genuinely one of the sweetest people in my whole world. 💗</p>
+      <button class="btn btn-secondary next-btn">Continue My Adventure →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3 — GAME 2: Find The Hidden Flower -->
+  <section class="step" data-step="3" id="step-game2">
+    <div class="panel glass">
+      <h2 class="panel-title">Find The Hidden Flower 🌸</h2>
+      <p class="panel-text">Somewhere in this garden is a little surprise for you…</p>
+      <div class="game-area garden-area" id="game2-area" aria-label="Tap the special flower"></div>
+    </div>
+  </section>
+
+  <!-- STEP 4 — REVEAL 2 -->
+  <section class="step" data-step="4" id="step-reveal2">
+    <div class="panel glass reveal-panel">
+      <div class="reveal-badge">🎁 Surprise #2</div>
+      <p class="reveal-message">Of course you found it, my clever girl. 💗</p>
+      <div class="polaroid">
+        <img src="assets/photos/mahru1.jpeg" alt="A little moment of Mahru" onerror="this.parentElement.classList.add('polaroid--empty')" />
+        <span class="polaroid-caption">one of my favorites of you 💕</span>
+      </div>
+      <button class="btn btn-secondary next-btn">Continue My Adventure →</button>
+    </div>
+  </section>
+
+  <!-- STEP 5 — GAME 3: Choose The Right Gift -->
+  <section class="step" data-step="5" id="step-game3">
+    <div class="panel glass">
+      <h2 class="panel-title">Choose The Right Gift 🎁</h2>
+      <p class="panel-text">One of these gifts has a secret message from me…</p>
+      <p class="game-feedback" id="game3-feedback">&nbsp;</p>
+      <div class="gift-row" id="game3-area">
+        <button class="gift-box" data-gift="0"><span class="gift-lid"></span><span class="gift-body">🎁</span></button>
+        <button class="gift-box" data-gift="1"><span class="gift-lid"></span><span class="gift-body">🎁</span></button>
+        <button class="gift-box" data-gift="2"><span class="gift-lid"></span><span class="gift-body">🎁</span></button>
+        <button class="gift-box" data-gift="3"><span class="gift-lid"></span><span class="gift-body">🎁</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 6 — REVEAL 3 -->
+  <section class="step" data-step="6" id="step-reveal3">
+    <div class="panel glass reveal-panel">
+      <div class="reveal-badge">🎁 Surprise #3</div>
+      <p class="reveal-message">You found it, baby girl! 💗</p>
+      <p class="reveal-sub">Mahru, I hope your smile stays brighter than every star above you. ✨</p>
+      <button class="btn btn-secondary next-btn">Continue My Adventure →</button>
+    </div>
+  </section>
+
+  <!-- STEP 7 — GAME 4: Catch The Butterfly -->
+  <section class="step" data-step="7" id="step-game4">
+    <div class="panel glass">
+      <h2 class="panel-title">Catch The Little Butterfly 🦋</h2>
+      <p class="panel-text">Catch the little butterfly to continue.</p>
+      <div class="game-area" id="game4-area" aria-label="Tap the butterfly">
+        <button class="butterfly" id="butterfly" aria-label="Catch the butterfly">🦋</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 8 — REVEAL 4 (gallery) -->
+  <section class="step" data-step="8" id="step-reveal4">
+    <div class="panel glass reveal-panel reveal-panel--wide">
+      <div class="reveal-badge">🎁 Surprise #4</div>
+      <p class="reveal-message">You caught it! Just like you caught my attention. 🥹💗</p>
+      <h3 class="gallery-title">Little Moments of My Beautiful Girl 💗</h3>
+      <div class="gallery" id="gallery">
+        <div class="polaroid"><img src="assets/photos/mahru2.jpeg" alt="Mahru" onerror="this.parentElement.classList.add('polaroid--empty')"><span class="polaroid-caption">💗</span></div>
+        <div class="polaroid"><img src="assets/photos/mahru3.jpeg" alt="Mahru" onerror="this.parentElement.classList.add('polaroid--empty')"><span class="polaroid-caption">🌸</span></div>
+        <div class="polaroid"><img src="assets/photos/mahru4.jpeg" alt="Mahru" onerror="this.parentElement.classList.add('polaroid--empty')"><span class="polaroid-caption">✨</span></div>
+        <div class="polaroid"><img src="assets/photos/mahru5.jpeg" alt="Mahru" onerror="this.parentElement.classList.add('polaroid--empty')"><span class="polaroid-caption">🎀</span></div>
+      </div>
+      <button class="btn btn-secondary next-btn">Continue My Adventure →</button>
+    </div>
+  </section>
+
+  <!-- STEP 9 — GAME 5: Heart Puzzle -->
+  <section class="step" data-step="9" id="step-game5">
+    <div class="panel glass">
+      <h2 class="panel-title">Put The Pieces Together 🧩</h2>
+      <p class="panel-text">Put the pieces together to reveal your surprise.</p>
+      <div class="puzzle-wrap">
+        <div class="puzzle-board" id="puzzle-board"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 10 — REVEAL 5 (letter) -->
+  <section class="step" data-step="10" id="step-reveal5">
+    <div class="panel glass reveal-panel">
+      <div class="reveal-badge">🎁 Surprise #5</div>
+      <p class="reveal-message">Look who finally appeared! My beautiful Mahru 💗</p>
+
+      <div class="letter-wrap">
+        <div class="envelope" id="envelope">
+          <div class="envelope-flap"></div>
+          <div class="envelope-body">💌</div>
+          <p class="envelope-hint">tap to open</p>
+        </div>
+        <div class="letter-paper hidden" id="letter-paper">
+          <p class="letter-line" data-delay="0">My dearest Mahru,</p>
+          <p class="letter-line" data-delay="1">On this little day of yours, I just want you to know how loved you are.</p>
+          <p class="letter-line" data-delay="2">Your laugh makes ordinary days feel like something worth remembering.</p>
+          <p class="letter-line" data-delay="3">I hope this year brings you every soft, sweet, sparkly thing you deserve.</p>
+          <p class="letter-line" data-delay="4">Stay exactly as wonderful as you are, baby girl.</p>
+          <p class="letter-signoff" data-delay="5">Forever your favorite person, 💗</p>
+        </div>
+      </div>
+      <button class="btn btn-secondary next-btn hidden" id="after-letter-btn">Continue My Adventure →</button>
+    </div>
+  </section>
+
+  <!-- STEP 11 — DREAMY NIGHT -->
+  <section class="step" data-step="11" id="step-night">
+    <div class="panel glass reveal-panel night-panel">
+      <p class="reveal-message night-message">Even the stars aren't as cute as you, Mahru. 🌙💗</p>
+      <button class="btn btn-secondary next-btn">Make A Wish →</button>
+    </div>
+  </section>
+
+  <!-- STEP 12 — GAME 6: Make A Wish -->
+  <section class="step" data-step="12" id="step-game6">
+    <div class="panel glass night-panel">
+      <h2 class="panel-title panel-title--light">Make A Wish, Baby Girl 🎂✨</h2>
+      <p class="panel-text panel-text--light">Make a secret birthday wish, sweetheart… then tap the star when you see it ✨</p>
+      <div class="game-area sky-area" id="game6-area">
+        <div class="shooting-star" id="shooting-star">🌠</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 13 — FINAL -->
+  <section class="step" data-step="13" id="step-final">
+    <div class="final-inner">
+      <div class="final-heart" aria-hidden="true">💗</div>
+      <h2 class="final-title">Happy Birthday, My Sweetheart Mahru 💗</h2>
+      <p class="final-date">19 August 🎂✨</p>
+      <p class="final-sub">Stay happy. Stay adorable. Keep smiling, baby girl. 💗</p>
+      <p class="final-wish-line">May your every little wish find its way to you.</p>
+      <button class="btn btn-primary" id="replay-btn">Replay My Surprise 💞</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Restart adventure (discreet, always available once adventure starts) -->
+<button id="restart-adventure-btn" class="restart-link hidden">Restart Adventure</button>
+
+<!-- Confirm restart dialog -->
+<div id="restart-confirm" class="confirm-overlay hidden">
+  <div class="confirm-box glass">
+    <p>Restart the whole adventure, sweetheart? Your unlocked progress will be reset.</p>
+    <div class="confirm-actions">
+      <button id="restart-yes" class="btn btn-secondary">Yes, restart</button>
+      <button id="restart-no" class="btn btn-ghost">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
